@@ -1,6 +1,11 @@
 package com.thethelafaltein.chatroom.db;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +14,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.thethelafaltein.chatroom.model.Chat;
 import com.thethelafaltein.chatroom.model.ChatStatus;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
 public class ChatRepositoryTest {
@@ -25,6 +32,46 @@ public class ChatRepositoryTest {
     void insertChat(){
         Chat chat = new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
         chatRepository.saveAndFlush(chat);
+    }
+
+    @Test
+    void getChatByCustomerId(){
+        Chat chat = new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
+        chatRepository.saveAndFlush(chat);
+        Optional<Chat> result = chatRepository.findByCustomerId(100L);
+        assertThat(result.isPresent()).isTrue();
+        assertEquals(result.get().getCustomerId(), 100L); 
+    }
+
+    @Test
+    void updateByStatus(){
+        Chat chat = new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
+        chatRepository.saveAndFlush(chat);
+        Optional<Chat> result = chatRepository.findByCustomerId(100L);
+        chatRepository.updateChatStatus(result.get().getId(), ChatStatus.INACTIVE);
+        result = chatRepository.findByCustomerId(100L);
+        assertEquals(result.get().getChatStatus(), ChatStatus.INACTIVE);
+    }
+
+    @Test
+    void finaAllByStatus(){
+        List<Chat> chats = new ArrayList<>();
+        chats.add(new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE));
+        chats.add(new Chat(101L,"I'm bored",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.INACTIVE));
+        chats.add(new Chat(100L,"Ready for summer",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE));
+        chats.add(new Chat(101L,"Really bored",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE));
+
+        for(Chat ch:chats){
+            chatRepository.saveAndFlush(ch);
+        }
+
+        Optional<List<Chat>>result1 = chatRepository.findAllByStatus(ChatStatus.ACTIVE);
+        assertThat(result1.isPresent()).isTrue();
+        assertEquals(result1.get().size(), 3);
+        Optional<List<Chat>>result2 = chatRepository.findAllByStatus(ChatStatus.INACTIVE);
+        assertThat(result2.isPresent()).isTrue();
+        assertEquals(result2.get().size(), 1);
+        
     }
 
 }
