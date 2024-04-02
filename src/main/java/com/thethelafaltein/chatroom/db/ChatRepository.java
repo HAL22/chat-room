@@ -18,12 +18,12 @@ import jakarta.transaction.Transactional;
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     @Query("SELECT c FROM Chat c where c.customerId = ?1")
-    Optional<Chat> findByCustomerId(Long customerId);
+    Optional<List<Chat>> findByCustomerId(Long customerId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional  
-    @Query("UPDATE Chat c set c.chatStatus = ?2 where c.id = ?1")
-    void updateChatStatus(Long id,ChatStatus status);
+    @Query("UPDATE Chat c set c.chatStatus = ?2 where c.id = ?1 and c.customerId = ?3")
+    void updateChatStatus(Long id,ChatStatus status,Long customerId);
 
     @Query("SELECT c FROM Chat c where c.chatStatus = ?1")
     Optional<List<Chat>> findAllByStatus(ChatStatus status);

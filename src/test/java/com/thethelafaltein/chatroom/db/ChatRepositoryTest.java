@@ -36,21 +36,32 @@ public class ChatRepositoryTest {
 
     @Test
     void getChatByCustomerId(){
+        // Positive case
         Chat chat = new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
         chatRepository.saveAndFlush(chat);
-        Optional<Chat> result = chatRepository.findByCustomerId(100L);
+        Optional<List<Chat>> result = chatRepository.findByCustomerId(100L);
         assertThat(result.isPresent()).isTrue();
-        assertEquals(result.get().getCustomerId(), 100L); 
+        assertEquals(result.get().get(0).getCustomerId(), 100L);
+
+        // Negative case
+        result = chatRepository.findByCustomerId(1L);
+        assertThat(result.get().isEmpty()).isTrue();
     }
 
     @Test
     void updateByStatus(){
+        // Update works
         Chat chat = new Chat(100L,"Hello guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
         chatRepository.saveAndFlush(chat);
-        Optional<Chat> result = chatRepository.findByCustomerId(100L);
-        chatRepository.updateChatStatus(result.get().getId(), ChatStatus.INACTIVE);
+        Optional<List<Chat>> result = chatRepository.findByCustomerId(100L);
+        chatRepository.updateChatStatus(result.get().get(0).getId(), ChatStatus.INACTIVE,100L);
         result = chatRepository.findByCustomerId(100L);
-        assertEquals(result.get().getChatStatus(), ChatStatus.INACTIVE);
+        assertEquals(result.get().get(0).getChatStatus(), ChatStatus.INACTIVE);
+
+        // Update doesn't work because customerId is wrong
+        chatRepository.updateChatStatus(result.get().get(0).getId(), ChatStatus.ACTIVE,101L);
+        result = chatRepository.findByCustomerId(100L);
+        assertEquals(result.get().get(0).getChatStatus(), ChatStatus.INACTIVE);
     }
 
     @Test
