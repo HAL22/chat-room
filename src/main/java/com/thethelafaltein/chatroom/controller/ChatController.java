@@ -58,7 +58,8 @@ public class ChatController {
 
         chatMessage.setType(ChatMessageType.CHAT);
         chatMessage.setTimestamp(LocalDateTime.now());
-        chatroomService.insertChat(chatMessage, userId);
+        Long chatId = chatroomService.insertChat(chatMessage, userId);
+        chatMessage.setContentId(chatId);
         return chatMessage;
 
         } catch (Exception e){
@@ -78,7 +79,7 @@ public class ChatController {
     ) {
         // Add username in web socket session
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
-      
+        
         return chatMessage;
     }
 

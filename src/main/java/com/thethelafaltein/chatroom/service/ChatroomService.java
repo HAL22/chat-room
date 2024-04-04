@@ -28,19 +28,18 @@ public class ChatroomService {
    
 
     @Transactional
-    public void insertChat(ChatMessage chatMessage,Long userId){
+    public Long insertChat(ChatMessage chatMessage,Long userId){
         Chat chat = new Chat(userId,chatMessage.getContent(),LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
-        chatRepository.save(chat);
+        Chat ch = chatRepository.save(chat);
+        return ch.getId();
     }
 
     public Optional<User> getUserByUsernameAndPassowrd(String username,String password){
-       List<User> users = userRepository.findAll();
-       for(User user:users){
-        if(user.getUsername().equals(username) && user.getPassword().equals(password)){
-            return Optional.of(user);
+        Optional<List<User>>list =   userRepository.findAllByUserNameAndPassword(username,password);
+        if(list.isPresent()){
+            return  Optional.of(list.get().get(0));
         }
-       }
-
+       
        return Optional.empty();
     }
 
