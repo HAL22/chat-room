@@ -4,5 +4,6 @@ public enum ChatMessageType {
     CHAT,
     HISTORY,
     JOIN,
-    LEAVE
+    LEAVE,
+    ERROR
 }

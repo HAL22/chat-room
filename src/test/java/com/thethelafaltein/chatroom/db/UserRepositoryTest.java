@@ -1,6 +1,7 @@
 package com.thethelafaltein.chatroom.db;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +11,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.thethelafaltein.chatroom.model.User;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 
@@ -39,11 +42,13 @@ public class UserRepositoryTest {
         userRepository.saveAndFlush(user);
 
         // Positive case
-        Optional<User> u1 = userRepository.findByUsernameAndPassword("Thethe","1000");
+        Optional<List<User>> u1 = userRepository.findAllByUserNameAndPassword("Thethe","1000");
         assertThat(u1.isPresent()).isTrue();
+        assertEquals(u1.get().size(), 1);
 
         // Negative cass
-        Optional<User> u2 = userRepository.findByUsernameAndPassword("Thethe","10N0");
-        assertThat(u2.isPresent()).isFalse();
+        Optional<List<User>> u2 = userRepository.findAllByUserNameAndPassword("Thethe","10N0");
+        assertThat(u2.isPresent()).isTrue();
+        assertEquals(u2.get().size(), 0);
     }
 }

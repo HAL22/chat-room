@@ -1,45 +1,73 @@
 package com.thethelafaltein.chatroom.controller;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
-
 import com.thethelafaltein.chatroom.model.ChatMessage;
 import com.thethelafaltein.chatroom.model.ChatMessageType;
 import com.thethelafaltein.chatroom.model.LoginDetails;
+import com.thethelafaltein.chatroom.model.User;
+import com.thethelafaltein.chatroom.service.ChatroomService;
 
 @Controller
 public class ChatController {
+
+    @Autowired
+    private ChatroomService chatroomService;
+
+
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+    public ChatMessage sendMessage(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        try{
+
+            Long userId = (Long) headerAccessor.getSessionAttributes().get("userId");
         if(chatMessage.getContent().startsWith("/history")){
-            ChatMessage cm1 = new ChatMessage("I hate country music", "Dan", LocalDateTime.now(), 100L, null);
-            ChatMessage cm2 = new ChatMessage("Dude what up", "Scott", LocalDateTime.now(), 101L, null);
-            ChatMessage cm3 = new ChatMessage("Hello", "Peter", LocalDateTime.now(), 103L, null);
-
-            List<ChatMessage>list = new ArrayList<>();
-            list.add(cm1);
-            list.add(cm2);
-            list.add(cm3);
-
-            chatMessage.setHistory(list);
+            chatMessage.setHistory(chatroomService.getChatHistory());
+           
 
             chatMessage.setType(ChatMessageType.HISTORY);
 
             return chatMessage;
         }
+        else if(chatMessage.getContent().startsWith("/delete")){
+            String[] arr = chatMessage.getContent().split(" ");
 
-        
+            Long contentId = 0L;
+            
+            contentId = Long.parseLong(arr[1]);
+             
+            chatroomService.deleteChatFromHistory(userId, contentId);
+
+            chatMessage.setContent(chatMessage.getSender()+" deleted message: "+contentId.toString());
+
+            chatMessage.setType(ChatMessageType.CHAT);
+
+            chatMessage.setTimestamp(LocalDateTime.now());
+
+            return chatMessage;
+            
+        }
+
+
         chatMessage.setType(ChatMessageType.CHAT);
         chatMessage.setTimestamp(LocalDateTime.now());
+        chatroomService.insertChat(chatMessage, userId);
         return chatMessage;
+
+        } catch (Exception e){
+            chatMessage.setType(ChatMessageType.ERROR);
+
+            chatMessage.setContent("Error executing following command: "+ chatMessage.getContent());
+
+            return chatMessage;
+        }  
     }
 
     @MessageMapping("/chat.addUser")
@@ -50,18 +78,22 @@ public class ChatController {
     ) {
         // Add username in web socket session
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+      
         return chatMessage;
     }
 
 
     @MessageMapping("/chat.loginUser")
     @SendTo("/topic/login")
-    public LoginDetails login(@Payload LoginDetails loginDetails){
+    public LoginDetails login(@Payload LoginDetails loginDetails, SimpMessageHeaderAccessor headerAccessor){
         loginDetails.setIsAUser(false);
-        if(loginDetails.getUsername().equals("gg")){
+    
+        Optional<User>user = chatroomService.getUserByUsernameAndPassowrd(loginDetails.getUsername(),loginDetails.getPassword());
+        if(user.isPresent()){
             loginDetails.setIsAUser(true);
+            headerAccessor.getSessionAttributes().put("userId", user.get().getId());
         }
-
+        
         return loginDetails; 
     }
 }

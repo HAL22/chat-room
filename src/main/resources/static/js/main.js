@@ -7,9 +7,11 @@ var messageForm = document.querySelector('#messageForm');
 var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#messageArea');
 var connectingElement = document.querySelector('.connecting');
+var errorMessage = document.querySelector('#error-message')
 
 var stompClient = null;
 var username = null;
+var password = null
 
 var colors = [
     '#2196F3', '#32c787', '#00BCD4', '#ff5652',
@@ -18,40 +20,34 @@ var colors = [
 
 function connect(event) {
     username = document.querySelector('#name').value.trim();
+    password = document.querySelector('#pass').value.trim();
 
-    var socket = new SockJS('/chat-websocket');
-    stompClient = Stomp.over(socket);
-
-    stompClient.connect({}, onLogin, onError);
-
-
-    // username
-    if(false) {
-        usernamePage.classList.add('hidden');
-        chatPage.classList.remove('hidden');
-
+    if(username && password){
         var socket = new SockJS('/chat-websocket');
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, onConnected, onError);
+        stompClient.connect({}, onLogin, onError);
     }
+
     event.preventDefault();
 }
 
 function onLogin(){
-    // Subscribe to the Public Topic
+    // Subscribe to the login Topic
     stompClient.subscribe('/topic/login', onLoginDetails);
 
     // Tell your username to the server
     stompClient.send("/app/chat.loginUser",
         {},
-        JSON.stringify({username: username,password:"password"})
+        JSON.stringify({username: username,password:password})
     )
 
 }
 
 
 function onConnected() {
+     stompClient.unsubscribe('/topic/login')
+
     // Subscribe to the Public Topic
     stompClient.subscribe('/topic/public', onMessageReceived);
 
@@ -71,11 +67,12 @@ function onLoginDetails(payload){
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
-        stompClient.unsubscribe('/topic/login')
+        
         onConnected()
         
     }else{
-        console.log("Wrong user")
+        errorMessage.style.display = 'block'
+        stompClient.unsubscribe('/topic/login')
     }
 }
 
@@ -87,6 +84,7 @@ function onError(error) {
 
 
 function sendMessage(event) {
+    stompClient.unsubscribe('/topic/login')
     var messageContent = messageInput.value.trim();
     if(messageContent && stompClient) {
         var chatMessage = {
