@@ -19,7 +19,14 @@ var colors = [
 function connect(event) {
     username = document.querySelector('#name').value.trim();
 
-    if(username) {
+    var socket = new SockJS('/chat-websocket');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, onLogin, onError);
+
+
+    // username
+    if(false) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
@@ -29,6 +36,18 @@ function connect(event) {
         stompClient.connect({}, onConnected, onError);
     }
     event.preventDefault();
+}
+
+function onLogin(){
+    // Subscribe to the Public Topic
+    stompClient.subscribe('/topic/login', onLoginDetails);
+
+    // Tell your username to the server
+    stompClient.send("/app/chat.loginUser",
+        {},
+        JSON.stringify({username: username,password:"password"})
+    )
+
 }
 
 
@@ -43,6 +62,21 @@ function onConnected() {
     )
 
     connectingElement.classList.add('hidden');
+}
+
+function onLoginDetails(payload){
+    var message = JSON.parse(payload.body);
+
+    if(message.isAUser){
+        usernamePage.classList.add('hidden');
+        chatPage.classList.remove('hidden');
+
+        stompClient.unsubscribe('/topic/login')
+        onConnected()
+        
+    }else{
+        console.log("Wrong user")
+    }
 }
 
 

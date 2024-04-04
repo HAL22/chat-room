@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 
 import com.thethelafaltein.chatroom.model.ChatMessage;
 import com.thethelafaltein.chatroom.model.ChatMessageType;
+import com.thethelafaltein.chatroom.model.LoginDetails;
 
 @Controller
 public class ChatController {
@@ -50,5 +51,17 @@ public class ChatController {
         // Add username in web socket session
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
         return chatMessage;
+    }
+
+
+    @MessageMapping("/chat.loginUser")
+    @SendTo("/topic/login")
+    public LoginDetails login(@Payload LoginDetails loginDetails){
+        loginDetails.setIsAUser(false);
+        if(loginDetails.getUsername().equals("gg")){
+            loginDetails.setIsAUser(true);
+        }
+
+        return loginDetails; 
     }
 }
