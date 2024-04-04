@@ -78,6 +78,35 @@ function onMessageReceived(payload) {
     } else if (message.type === 'LEAVE') {
         messageElement.classList.add('event-message');
         message.content = message.sender + ' left!';
+    } else if(message.type === "HISTORY" && username === message.sender){
+        console.log(message.history)
+        for(let i = 0; i < message.history.length; i++){
+            console.log(message.history[i])
+            messageElement.classList.add('chat-message');
+
+            var avatarElement = document.createElement('i');
+            var avatarText = document.createTextNode(message.history[i].sender[0]);
+            avatarElement.appendChild(avatarText);
+            avatarElement.style['background-color'] = getAvatarColor(message.history[i].sender);
+
+            messageElement.appendChild(avatarElement);
+
+            var usernameElement = document.createElement('span');
+            var chatdetails = " < id:"+ message.history[i].contentId +", timestamp:" + message.history[i].timestamp + " >"
+            var usernameText = document.createTextNode(message.history[i].sender+chatdetails);
+            usernameElement.appendChild(usernameText);
+            messageElement.appendChild(usernameElement);
+
+            var textElement = document.createElement('p');
+            
+            var messageText = document.createTextNode(message.history[i].content);
+            textElement.appendChild(messageText);
+
+            messageElement.appendChild(textElement);
+
+            messageArea.appendChild(messageElement);
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
     } else {
         messageElement.classList.add('chat-message');
 
@@ -89,19 +118,22 @@ function onMessageReceived(payload) {
         messageElement.appendChild(avatarElement);
 
         var usernameElement = document.createElement('span');
-        var usernameText = document.createTextNode(message.sender);
+        var chatdetails = " < id:"+ message.contentId +", timestamp:" + message.timestamp + " >"
+        var usernameText = document.createTextNode(message.sender+chatdetails);
         usernameElement.appendChild(usernameText);
         messageElement.appendChild(usernameElement);
     }
 
-    var textElement = document.createElement('p');
-    var messageText = document.createTextNode(message.content);
-    textElement.appendChild(messageText);
+    if(message.type != "HISTORY" ){
+        var textElement = document.createElement('p');
+        var messageText = document.createTextNode(message.content);
+        textElement.appendChild(messageText);
 
-    messageElement.appendChild(textElement);
+        messageElement.appendChild(textElement);
 
-    messageArea.appendChild(messageElement);
-    messageArea.scrollTop = messageArea.scrollHeight;
+        messageArea.appendChild(messageElement);
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }  
 }
 
 
@@ -113,6 +145,8 @@ function getAvatarColor(messageSender) {
     var index = Math.abs(hash % colors.length);
     return colors[index];
 }
+
+
 
 usernameForm.addEventListener('submit', connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
