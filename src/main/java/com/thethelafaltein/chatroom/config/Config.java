@@ -28,16 +28,14 @@ public class Config {
             list.add(user2);
             list.add(user3);
 
-            userRepository.saveAllAndFlush(list);
-
-            Chat c1 = new Chat(100L,"Hey guys",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
-            Chat c2 = new Chat(101L,"Yesterday was banging",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
-            Chat c3 = new Chat(106L,"Morning",LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE);
+            List<User>users = userRepository.saveAllAndFlush(list);
 
             List<Chat>list1 = new ArrayList<>();
-            list1.add(c1);
-            list1.add(c2);
-            list1.add(c3);
+
+            for(User user:users){
+                list1.add(new Chat(user.getId(),"Hey guys it's "+user.getUsername(),LocalDateTime.now(),LocalDateTime.now(),ChatStatus.ACTIVE));
+            }
+       
 
             chatRepository.saveAllAndFlush(list1);
         };

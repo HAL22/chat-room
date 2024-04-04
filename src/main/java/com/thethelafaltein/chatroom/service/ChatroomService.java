@@ -36,7 +36,7 @@ public class ChatroomService {
 
     public Optional<User> getUserByUsernameAndPassowrd(String username,String password){
         Optional<List<User>>list =   userRepository.findAllByUserNameAndPassword(username,password);
-        if(list.isPresent()){
+        if(list.isPresent() && !list.get().isEmpty()){
             return  Optional.of(list.get().get(0));
         }
        

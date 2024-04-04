@@ -37,4 +37,10 @@ So therefore I created a simple Front end (using javascript,css and html) for te
         - Type in <b>/history</b> ,  for viewing the history of the chatroom
         - Type in <b>/delete <message id> </b> for deleting a message. Note you can only delete a message you entered
 
-![screen-gif](./chatroom.gif)
+<b>See chatroom.gif for a demo</b>
+![screen-gif](./chat.gif)
+
+
+<b>Future plans</b>
+- Use docker for running the application
+- Or using a cloud service like AWS , for Server scalability and CI/CD
